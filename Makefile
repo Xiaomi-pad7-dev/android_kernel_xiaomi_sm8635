@@ -683,7 +683,7 @@ outputmakefile:
 		false; \
 	fi
 	$(Q)ln -fsn $(srctree) source
-	$(call cmd,makefile)
+	$(Q)if [ ! -f Makefile ]; then $(call cmd,makefile); fi
 	$(Q)test -e .gitignore || \
 	{ echo "# this is build directory, ignore it"; echo "*"; } > .gitignore
 endif
