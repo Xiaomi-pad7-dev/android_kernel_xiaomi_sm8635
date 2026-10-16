@@ -10,4 +10,10 @@ if [ ! -x "$(command -v "$@")" ]; then
 	exit 1
 fi
 
-"$@" --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'
+output=$("$@" --version 2>/dev/null) || { echo 0; exit 0; }
+ver=$(echo "$output" | sed -nE 's/v([0-9]+)\.([0-9]+)/\1\2/p')
+if [ -n "$ver" ]; then
+	echo "$ver"
+else
+	echo 0
+fi
