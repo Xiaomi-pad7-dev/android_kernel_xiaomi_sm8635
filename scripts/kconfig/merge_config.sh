@@ -113,8 +113,9 @@ MERGE_LIST=$*
 SED_CONFIG_EXP1="s/^\(${CONFIG_PREFIX}[a-zA-Z0-9_]*\)=.*/\1/p"
 SED_CONFIG_EXP2="s/^# \(${CONFIG_PREFIX}[a-zA-Z0-9_]*\) is not set$/\1/p"
 
-TMP_FILE=$(mktemp ./.tmp.config.XXXXXXXXXX)
-MERGE_FILE=$(mktemp ./.merge_tmp.config.XXXXXXXXXX)
+TMP_PREFIX="${OUTPUT:-.}"
+TMP_FILE=$(mktemp "${TMP_PREFIX}/.tmp.config.XXXXXXXXXX" 2>/dev/null || mktemp)
+MERGE_FILE=$(mktemp "${TMP_PREFIX}/.merge_tmp.config.XXXXXXXXXX" 2>/dev/null || mktemp)
 
 echo "Using $INITFILE as base"
 
