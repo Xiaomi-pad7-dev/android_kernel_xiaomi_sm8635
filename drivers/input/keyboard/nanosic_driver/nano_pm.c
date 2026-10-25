@@ -81,6 +81,6 @@ void Nanosic_PM_init(struct nano_i2c_client *i2c_client)
 
 void Nanosic_PM_free(struct nano_i2c_client *i2c_client)
 {
-	timer_delete_sync(&i2c_client->pm_timer);
+	del_timer_sync(&i2c_client->pm_timer);
 	pm_relax(i2c_client->dev);
 }

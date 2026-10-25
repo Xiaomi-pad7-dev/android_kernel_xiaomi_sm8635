@@ -26,6 +26,7 @@
 #include <linux/acpi.h>
 #include <linux/of.h>
 #include <linux/i2c.h>
+#include <linux/soc/qcom/panel_event_notifier.h>
 #include <linux/platform_device.h>
 #include <linux/of_gpio.h>
 #include <linux/regulator/consumer.h>
@@ -115,7 +116,8 @@ static int keyboard_check_panel(struct device_node *np)
 	return PTR_ERR(panel);
 }
 
-static int nanosic_803_probe(struct i2c_client *client)
+static int nanosic_803_probe(struct i2c_client *client,
+			     const struct i2c_device_id *id)
 {
 	int ret = 0;
 	struct device_node *of_node;
@@ -249,13 +251,13 @@ _err1:
 	return -1;
 }
 
-static void nanosic_803_remove(struct i2c_client *client)
+static int nanosic_803_remove(struct i2c_client *client)
 {
 	struct nano_i2c_client *I2client = NULL;
 
 	dbgprint(ALERT_LEVEL, "remove\n");
 	if (initial == false)
-		return;
+		return 0;
 
 	I2client = i2c_get_clientdata(client);
 
