@@ -251,13 +251,13 @@ _err1:
 	return -1;
 }
 
-static int nanosic_803_remove(struct i2c_client *client)
+static void nanosic_803_remove(struct i2c_client *client)
 {
 	struct nano_i2c_client *I2client = NULL;
 
 	dbgprint(ALERT_LEVEL, "remove\n");
 	if (initial == false)
-		return 0;
+		return;
 
 	I2client = i2c_get_clientdata(client);
 
@@ -285,7 +285,6 @@ static int nanosic_803_remove(struct i2c_client *client)
 	initial = false;
 
 	dbgprint(ALERT_LEVEL, "remove nanosic driver\n");
-	return 0;
 }
 
 static const struct of_device_id nanosic_803_of_match[] = {
