@@ -285,6 +285,7 @@ static int nanosic_803_remove(struct i2c_client *client)
 	initial = false;
 
 	dbgprint(ALERT_LEVEL, "remove nanosic driver\n");
+	return 0;
 }
 
 static const struct of_device_id nanosic_803_of_match[] = {
