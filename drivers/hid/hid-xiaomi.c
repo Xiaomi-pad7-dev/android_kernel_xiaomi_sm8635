@@ -88,9 +88,19 @@ static int xiaomi_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 				struct hid_field *field, struct hid_usage *usage,
 				unsigned long **bit, int *max)
 {
-	if (hdev->vendor != BT_VENDOR_ID_XIAOMI_PEN ||
-	    hdev->product != BT_DEVICE_ID_XIAOMI_FOCUS_PEN_PRO)
+	if (hdev->vendor != BT_VENDOR_ID_XIAOMI_PEN)
 		return 0;
+
+	switch (hdev->product) {
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN_PRO:
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN:
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN_2:
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN_3:
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN_4:
+		break;
+	default:
+		return 0;
+	}
 
 	switch (field->report->id) {
 	case 2:
@@ -105,6 +115,10 @@ static int xiaomi_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 static const struct hid_device_id xiaomi_devices[] = {
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_XIAOMI, USB_DEVICE_ID_MI_SILENT_MOUSE) },
 	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN_PRO) },
+	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN) },
+	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN_2) },
+	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN_3) },
+	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN_4) },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, xiaomi_devices);
