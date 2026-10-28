@@ -77,12 +77,17 @@ static __u8 *xiaomi_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 }
 
 /*
- * The Focus Pen Pro sends its gestures, tip pressure and motion in reports 2,
- * 5 and 6 for the touch controller host, which reads them over hidraw. The
- * descriptor leaves the pressure and motion collections on the keyboard
- * usage page, so the input layer would turn every sample into a Keypad Plus
- * press and every gesture into keypad navigation. Keep them off the input
- * devices.
+ * The Focus Pen sends its tip pressure in report 5, which the userspace stylus
+ * service reads over hidraw and forwards to TouchFeature. Keep report 5 off the
+ * input devices so it doesn't turn pressure samples into phantom keypresses.
+ *
+ * Report 2 carries the pen keyboard events:
+ *   - Lower/Writing button: KEY_PAGEUP
+ *   - Upper/Screenshot button: KEY_PAGEDOWN
+ *   - Gestures (Pro): KEY_F19 (pinch), KEY_KP9 (swipe up), KEY_KP3 (swipe down),
+ *     KEY_KPENTER (double tap)
+ *
+ * Keep Report 2 mapped so the pen keyboard is exposed to Android input.
  */
 static int xiaomi_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 				struct hid_field *field, struct hid_usage *usage,
@@ -103,10 +108,19 @@ static int xiaomi_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 	}
 
 	switch (field->report->id) {
-	case 2:
 	case 5:
 	case 6:
 		return -1;
+	}
+
+	/* Drop phantom keypad keys emitted during drawing/disconnect */
+	if ((usage->hid & HID_USAGE_PAGE) == HID_UP_KEYBOARD) {
+		switch (usage->hid & HID_USAGE) {
+		case 0x57: /* Keypad + (KEY_KPPLUS) */
+		case 0x67: /* Keypad = (KEY_KPEQUAL) */
+		case 0x2e: /* Keyboard = (KEY_EQUAL) */
+			return -1;
+		}
 	}
 
 	return 0;
