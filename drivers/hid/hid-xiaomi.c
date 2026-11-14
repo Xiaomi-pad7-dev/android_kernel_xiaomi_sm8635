@@ -76,8 +76,56 @@ static __u8 *xiaomi_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 	return rdesc;
 }
 
+/*
+ * Xiaomi Focus Pens send tip pressure (report 5) and motion (report 6) on the
+ * keyboard usage page for the touch controller, which reads them over hidraw.
+ * Keep them off the input devices, together with the keypad usages the pen
+ * emits while drawing. Report 2 carries the buttons and gestures and stays
+ * mapped.
+ */
+static int xiaomi_input_mapping(struct hid_device *hdev, struct hid_input *hi,
+				struct hid_field *field, struct hid_usage *usage,
+				unsigned long **bit, int *max)
+{
+	if (hdev->vendor != BT_VENDOR_ID_XIAOMI_PEN)
+		return 0;
+
+	switch (hdev->product) {
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN_PRO:
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN:
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN_2:
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN_3:
+	case BT_DEVICE_ID_XIAOMI_FOCUS_PEN_4:
+		break;
+	default:
+		return 0;
+	}
+
+	switch (field->report->id) {
+	case 5:
+	case 6:
+		return -1;
+	}
+
+	if ((usage->hid & HID_USAGE_PAGE) == HID_UP_KEYBOARD) {
+		switch (usage->hid & HID_USAGE) {
+		case 0x2e: /* Keyboard = */
+		case 0x57: /* Keypad + */
+		case 0x67: /* Keypad = */
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 static const struct hid_device_id xiaomi_devices[] = {
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_XIAOMI, USB_DEVICE_ID_MI_SILENT_MOUSE) },
+	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN_PRO) },
+	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN) },
+	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN_2) },
+	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN_3) },
+	{ HID_BLUETOOTH_DEVICE(BT_VENDOR_ID_XIAOMI_PEN, BT_DEVICE_ID_XIAOMI_FOCUS_PEN_4) },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, xiaomi_devices);
@@ -86,6 +134,7 @@ static struct hid_driver xiaomi_driver = {
 	.name = "xiaomi",
 	.id_table = xiaomi_devices,
 	.report_fixup = xiaomi_report_fixup,
+	.input_mapping = xiaomi_input_mapping,
 };
 module_hid_driver(xiaomi_driver);
 
