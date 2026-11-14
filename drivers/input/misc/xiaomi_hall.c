@@ -150,6 +150,8 @@ static int xiaomi_hall_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
+	device_init_wakeup(dev, true);
+
 	for (i = 0; i < hall->nswitches; i++) {
 		struct xiaomi_hall_switch *sw = &hall->switches[i];
 
@@ -170,6 +172,12 @@ static int xiaomi_hall_probe(struct platform_device *pdev)
 						sw);
 		if (ret)
 			return ret;
+
+		/* Allow the cover to wake the device from suspend. */
+		if (!enable_irq_wake(sw->open_irq))
+			dev_info(dev, "%s open irq wake enabled\n", sw->label);
+		if (!enable_irq_wake(sw->close_irq))
+			dev_info(dev, "%s close irq wake enabled\n", sw->label);
 	}
 
 	return 0;
