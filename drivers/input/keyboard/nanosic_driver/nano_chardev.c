@@ -471,32 +471,6 @@ static long Nanosic_chardev_fops_ioctl(struct file *file, unsigned int cmd,
 }
 
 /** ************************************************************************/ /**
- * @brief Handle device node mods during /dev/nanodev file create
- *
- * @details This function is called by the Linux driver core during class device
- * creation, and can be used to dynamically rename or change permissions of a
- * file in /dev.
- *
- * @param dev Pointer to the device to be named
- * @param modep Pointer to a mode object that can be modified
- *
- * @returns NULL; Usually we'd return a modified name, but we like the name
- * that we gave it during class creation.
- ** */
-static char *Nanosic_chardev_devnode(struct device *dev, umode_t *mode)
-{
-	dbgprint(ALERT_LEVEL, "change devnode\n");
-
-	/* Step 1: Make our node globally writable for testing */
-	if (mode) {
-		dbgprint(ALERT_LEVEL, "change devnode to 666\n");
-		*mode = 0666;
-	}
-
-	return NULL;
-}
-
-/** ************************************************************************/ /**
  *  @brief a sets of file operations method
  *
  ** */
@@ -578,9 +552,11 @@ int Nanosic_chardev_register(void)
 	}
 
 	/* Step 1.2: Create the class */
-	if (NULL !=
-	    (nanosic_cdev_class = class_create(THIS_MODULE, DRV_TOKEN))) {
-		nanosic_cdev_class->devnode = Nanosic_chardev_devnode;
+	nanosic_cdev_class = class_create(THIS_MODULE, DRV_TOKEN);
+	if (IS_ERR(nanosic_cdev_class)) {
+		unregister_chrdev_region(nanosic_cdev_basedev,
+					 CHARDEV_MAX_DEVICES);
+		return PTR_ERR(nanosic_cdev_class);
 	}
 
 	ret = Nanosic_chardev_claim();
